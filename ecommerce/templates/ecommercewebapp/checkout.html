@@ -1,0 +1,72 @@
+{% extends 'ecommercewebapp/base.html'%}
+{%load static%}
+{%block content%}
+  <!--Main layout-->
+<main class="mt-5 pt-4">
+   <form action="/checkout/" method="POST" id="addressForm" data-cities-url="{% url 'ecommercewebapp:ajax_load_cities' %}">
+       {%csrf_token%}
+       {{form.as_p}}
+        <div>
+    </div>
+              <button type="submit">Submit</button>
+{% if errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+   </form>
+<form action="{%url  'ecommercewebapp:add-coupon'%}" method="post">
+    {%csrf_token%}
+    {{couponform.as_p}}
+    <button type="submit">Redeem</button>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li  {% if message.tags %} class=" {{ message.tags }} " {% endif %}> {{ message }} </li>
+    {% endfor %}
+</ul>
+{% endif %}</form>
+    <div>
+        {%for cart_item in order.items.all%}
+        <p>Item Title:{{cart_item.item.title}}</p>
+        <p>Item Price:{{cart_item.item.price}}</p>
+        <p>Discounted percentage:{{cart_item.item.discountPercentage}}%</p>
+        <p>Quantity:{{cart_item.quantity}}</p>
+        <p>Total Order price:{{order.total_order_price}}</p>
+        <p>Amount Saved:{{order.total_amount_saved}}</p>
+        <p>Coupon amount:{{order.coupon.amount}}</p>
+        <p>Subtracting coupon amount and total price of order after coupon amount:{{order.total_order_price}}</p>
+        {%endfor%}
+        <p>{{default_shipping_address}}</p>
+        <p>{{default_billing_address}}</p>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+             $("#id_country").change(function () {
+              var url = $("#addressForm").attr("data-cities-url");
+              var countryId = $(this).val();
+
+              $.ajax({
+                url: url,
+                data: {
+                  'country': countryId
+                },
+                success: function (data) {
+                  $("#id_city").html(data);
+                }
+              });
+
+            });
+      </script>
+
+</main>
+{%endblock content%}
